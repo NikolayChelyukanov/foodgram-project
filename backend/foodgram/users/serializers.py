@@ -52,10 +52,6 @@ class SubscribeSerializer(SpecialUserSerializer):
             recipes, many=True, read_only=True)
         return serializer.data
 
-    @staticmethod
-    def get_recipes_count(obj):
-        return obj.recipes.count()
-
 
 class SpecialUserCreateSerializer(UserCreateSerializer):
 
