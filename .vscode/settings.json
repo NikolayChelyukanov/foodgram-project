@@ -1,7 +1,0 @@
-{"files.insertFinalNewline": true,
-    "[python]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": true
-      }
-    }
-}
