@@ -6,6 +6,11 @@ from .models import (
 )
 
 
+class IngredientRecipeInline(admin.TabularInline):
+    model = IngredientRecipe
+    min_num = 1
+
+
 class TagAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'name', 'color', 'slug')
@@ -20,10 +25,11 @@ class IngredientAdmin(admin.ModelAdmin):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'author', 'tags', )
+    list_display = ('id', 'name', 'author', 'tags', 'is_favorite')
     readonly_fields = ('is_favorite',)
     list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
+    inlines = (IngredientRecipeInline,)
 
     def is_favorite(self, obj):
         return obj.favorite.all().count()

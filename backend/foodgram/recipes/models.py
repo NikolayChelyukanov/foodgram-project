@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -18,6 +19,9 @@ class Tag(models.Model):
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
 
+    def __str__(self):
+        return f'{self.name} - {self.slug}'
+
 
 class Ingredient(models.Model):
     name = models.CharField(
@@ -29,6 +33,9 @@ class Ingredient(models.Model):
         ordering = ('name',)
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -42,7 +49,10 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор рецепта')
     text = models.TextField('Описание рецепта')
-    cooking_time = models.PositiveIntegerField('Время приготовления (мин)')
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления (мин)',
+        validators=(MaxValueValidator(32000, 'Max значение - 32000'),
+                    MinValueValidator(1, 'Min значение - 1')))
     pub_date = models.DateTimeField(
         'Дата публикации', auto_now_add=True)
     tags = models.ManyToManyField(
@@ -60,24 +70,38 @@ class Recipe(models.Model):
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
+    def __str__(self):
+        return self.name
+
 
 class TagRecipe(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
     class Meta:
+        ordering = ('id',)
         verbose_name = 'Тэг в рецепте'
         verbose_name_plural = 'Тэги в рецептах'
+
+    def __str__(self):
+        return f'К рецепту {self.recipe} привязан тэг {self.tag}'
 
 
 class IngredientRecipe(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField('Количество ингредиента')
+    amount = models.PositiveSmallIntegerField(
+        'Количество ингредиента',
+        validators=(MaxValueValidator(32000, 'Max значение - 32000'),
+                    MinValueValidator(1, 'Min значение - 1')))
 
     class Meta:
+        ordering = ('id',)
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
+
+    def __str__(self):
+        return f'В {self.recipe} входит {self.ingredient}({self.amount})'
 
 
 class Favorite(models.Model):
@@ -93,8 +117,12 @@ class Favorite(models.Model):
         verbose_name='Любимый рецепт')
 
     class Meta:
+        ordering = ('user',)
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранные рецепты'
+
+    def __str__(self):
+        return f'{self.user} добавил {self.recipe} в избранное'
 
 
 class ShoppingCart(models.Model):
@@ -110,5 +138,9 @@ class ShoppingCart(models.Model):
         verbose_name='Рецепт в списке покупок')
 
     class Meta:
+        ordering = ('user',)
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+
+    def __str__(self):
+        return f'{self.user} добавил {self.recipe} в список покупок'

@@ -1,8 +1,9 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
 
-from .models import Subscription, User
+from .models import User
 from recipes.models import Recipe
 
 
@@ -19,7 +20,7 @@ class SpecialUserSerializer(UserSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Subscription.objects.filter(user=user, author=author).exists()
+        return user.follower.filter(author=author).exists()
 
 
 class RecipeSubscriptionSerializer(serializers.ModelSerializer):
@@ -51,6 +52,21 @@ class SubscribeSerializer(SpecialUserSerializer):
         serializer = RecipeSubscriptionSerializer(
             recipes, many=True, read_only=True)
         return serializer.data
+
+    def validate(self, data):
+        author = self.instance
+        user = self.context.get('request').user
+        if user.follower.filter(author=author).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        if user == author:
+            raise ValidationError(
+                detail='Нельзя подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
+        return data
 
 
 class SpecialUserCreateSerializer(UserCreateSerializer):

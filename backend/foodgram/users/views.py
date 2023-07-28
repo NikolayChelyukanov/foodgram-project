@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
     IsAuthenticated, IsAuthenticatedOrReadOnly,
 )
@@ -44,25 +43,17 @@ class SpecialUserViewSet(UserViewSet):
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
         if request.method == 'POST':
-            if user == author:
-                raise ValidationError('Нельзя подписаться на самого себя',
-                                      code=status.HTTP_400_BAD_REQUEST)
-            if Subscription.objects.filter(user=user,
-                                           author=author).exists():
-                raise ValidationError('Вы уже подписаны на этого автора',
-                                      code=status.HTTP_400_BAD_REQUEST)
             serializer = SubscribeSerializer(
                 author,
+                data={'first_name': author.first_name,
+                      'last_name': author.last_name},
                 context={'request': request})
+            serializer.is_valid(raise_exception=True)
             Subscription.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            if not Subscription.objects.filter(user=user,
-                                               author=author).exists():
-                raise ValidationError('Вы не были подписаны на этого автора',
-                                      code=status.HTTP_400_BAD_REQUEST)
-            subscription = get_object_or_404(Subscription,
-                                             user=user, author=author)
+            subscription = Subscription.objects.filter(user=user,
+                                                       author=author).first()
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
