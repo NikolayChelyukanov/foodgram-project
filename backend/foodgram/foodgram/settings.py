@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'secret_key')
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['130.193.54.8', '127.0.0.1', 'localhost', 'nikochelyukanov.ddns.net']
 
