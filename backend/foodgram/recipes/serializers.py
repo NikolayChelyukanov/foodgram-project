@@ -143,7 +143,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             raise ValidationError('Нужно добавить хотя бы один ингредиент!')
         ingredients_list = []
         for item in value:
-            ingredient = get_object_or_404(Ingredient, id=item['id'])
+            ingredient = get_object_or_404(Ingredient, id=item['id'].id)
             if ingredient in ingredients_list:
                 raise ValidationError('Ингридиенты не должны повторяться!')
             ingredients_list.append(ingredient)
