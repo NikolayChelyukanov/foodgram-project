@@ -11,6 +11,11 @@ class IngredientRecipeInline(admin.TabularInline):
     min_num = 1
 
 
+class TagRecipeInLine(admin.TabularInline):
+    model = TagRecipe
+    min_num = 1
+
+
 class TagAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'name', 'color', 'slug')
@@ -29,10 +34,12 @@ class RecipeAdmin(admin.ModelAdmin):
     readonly_fields = ('is_favorite',)
     list_filter = ('name', 'author', 'tags')
     empty_value_display = '-пусто-'
-    inlines = (IngredientRecipeInline,)
+    inlines = (IngredientRecipeInline, TagRecipeInLine)
 
     def is_favorite(self, obj):
         return obj.favorite.all().count()
+
+    is_favorite.short_description = 'Добавлено в избранное, раз'
 
 
 class TagRecipeAdmin(admin.ModelAdmin):

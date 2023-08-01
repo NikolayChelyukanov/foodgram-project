@@ -1,4 +1,5 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.shortcuts import get_object_or_404
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
@@ -136,6 +137,23 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'tags', 'author', 'ingredients',
             'name', 'image', 'text', 'cooking_time')
+
+    def validate_ingredients(self, value):
+        if not value:
+            raise ValidationError('Нужно добавить хотя бы один ингредиент!')
+        ingredients_list = []
+        for item in value:
+            ingredient = get_object_or_404(Ingredient, id=item['id'])
+            if ingredient in ingredients_list:
+                raise ValidationError('Ингридиенты не должны повторяться!')
+            ingredients_list.append(ingredient)
+        return value
+
+    def validate_tags(self, value):
+        if not value:
+            raise ValidationError(
+                'Нужно выбрать хотя бы один тэг!')
+        return value
 
     def add_ingredients(self, recipe, ingredients):
         ingredients_recipe = []
